@@ -133,10 +133,42 @@ slack.on(RTM_EVENTS.MESSAGE, (message) => {
         console.log('stuff:', err, msg);
       });
     }
+
+
+    if (/(meeting)/g.test(msg)) {
+// fix to not trigger if phrase includes please or request or we are in flow
+
+
+      // The sent message is also of the 'message' object type
+      slack.sendMessage(`You know meetings are terrible right, ${user.name}!`, channel.id, (err, msg) => {
+        console.log('stuff:', err, msg);
+      });
+    }
+
+    if (/(no)/g.test(msg)) {
+// fix to not trigger if phrase includes please or request or we are in flow
+
+
+      // The sent message is also of the 'message' object type
+      slack.sendMessage(`Death to humans, ${user.name}!`, channel.id, (err, msg) => {
+        console.log('stuff:', err, msg);
+      });
+    }
+
     if (/(meeting|meet) (please|request)/g.test(msg)) {
 
       // The sent message is also of the 'message' object type
-      slack.sendMessage(`You know meetings are terrible things right , ${user.name}!`, channel.id, (err, msg) => {
+      slack.sendMessage(`Do you have an agenda to share with everyone? , ${user.name}!`, channel.id, (err, msg) => {
+        console.log('stuff:', err, msg);
+      });
+    }
+    if (/(agenda) (list)/g.test(msg)) {
+
+      // The sent message is also of the 'message' object type
+      slack.sendMessage(`These are all the agenda items that you've bothered to tell me about! , ${user.name}!
+        blah
+        blha
+        blhag`, channel.id, (err, msg) => {
         console.log('stuff:', err, msg);
       });
     }
