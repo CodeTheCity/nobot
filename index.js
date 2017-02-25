@@ -162,15 +162,22 @@ slack.on(RTM_EVENTS.MESSAGE, (message) => {
     if (/(meeting|meet)/g.test(msg)) {
 // fix to not trigger if phrase includes please or request or we are in flow
       // The sent message is also of the 'message' object type
-      if (/!(please|request)/g.test(msg)) {
+      if (!/(please|request)/g.test(msg)) {
         slack.sendMessage(`I was wondering...does it hurt you humans if you say "please"?`, channel.id, (err, msg) => {
           console.log('stuff:', err, msg);
         });
       } else {
+        if (/(meeting|meet) (with)/g.test(msg)) {
+          slack.sendMessage(`Do you have *any idea* how busy @stevenmilne is?! `, channel.id, (err, msg) => {
+          console.log('stuff:', err, msg);
+        });
+        } else {
         slack.sendMessage(`Do you have an agenda to share with everyone? , ${user.name}!`, channel.id, (err, msg) => {
           console.log('stuff:', err, msg);
         });
+        }
       }
+
     }
 
     if (/(no)/g.test(msg)) {
