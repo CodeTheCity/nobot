@@ -16,7 +16,7 @@ const RTM_EVENTS = require('@slack/client').RTM_EVENTS;
 // Import the client event constants from the Slack API
 const CLIENT_EVENTS = require('@slack/client').CLIENT_EVENTS;
 
-const token = 'xoxb-145771162305-GovyUe9szmOoNtpWk57dU3Ew';
+const token = '';
 
 // The Slack constructor takes 2 arguments:
 // token - String representation of the Slack token
@@ -105,11 +105,10 @@ slack.on(RTM_EVENTS.MESSAGE, (message) => {
 
   function get_greetings(){
     var responses = [
-      'Hello to you too, ${user.name}!',
-      '${user.name}! Oooh, lucky me, I get to help you again!'
-
+      `Hello to you too, ${user.name}!`,
+      `${user.name} Oooh, lucky me, I get to help you again!`
+    ];
       return responses[Math.floor(Math.random() * responses.length)];
-    ]
   }
 
   if (message.text) {
@@ -154,7 +153,7 @@ slack.on(RTM_EVENTS.MESSAGE, (message) => {
 
     if (/(meeting)/g.test(msg)) {
 // fix to not trigger if phrase includes please or request or we are in flow
-      if
+
       // The sent message is also of the 'message' object type
       slack.sendMessage(`You know meetings are terrible right, ${user.name}!`, channel.id, (err, msg) => {
         console.log('stuff:', err, msg);
@@ -182,7 +181,7 @@ slack.on(RTM_EVENTS.MESSAGE, (message) => {
     if (/(agenda) (list)/g.test(msg)) {
 
       // The sent message is also of the 'message' object type
-      slack.sendMessage(`These are all the agenda items that you've bothered to tell me about! , ${user.name}!
+      slack.sendMessage(`These are all the agenda items that you bothered to tell me about! , ${user.name}!
         blah
         blha
         blhag`, channel.id, (err, msg) => {
