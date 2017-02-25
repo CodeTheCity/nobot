@@ -106,7 +106,15 @@ slack.on(RTM_EVENTS.MESSAGE, (message) => {
   function get_greetings(){
     var responses = [
       `Hello to you too, ${user.name}!`,
-      `${user.name} Oooh, lucky me, I get to help you again!`
+      `${user.name}! Oooh, lucky me, I get to help you again!`
+    ];
+      return responses[Math.floor(Math.random() * responses.length)];
+  }
+
+  function get_meetingQuestions(){
+    var responses = [
+      `Do you have an agenda to share with everyone? , ${user.name}!`,
+      `${user.name}! Oooh, lucky me, I get to help you again!`
     ];
       return responses[Math.floor(Math.random() * responses.length)];
   }
@@ -118,7 +126,7 @@ slack.on(RTM_EVENTS.MESSAGE, (message) => {
       debugger;
 
       if (!user.is_admin) {
-        slack.sendMessage(`Sorry ${user.name}, but that functionality is only for admins.`, channel.id);
+        slack.sendMessage(`Sorry ${user.name}, that's confidential. Only my girlfriend can ask me that!`, channel.id);
         return;
       }
 
@@ -151,29 +159,23 @@ slack.on(RTM_EVENTS.MESSAGE, (message) => {
     }
 
 
-    if (/(meeting)/g.test(msg)) {
+    if (/(meeting|meet)/g.test(msg)) {
 // fix to not trigger if phrase includes please or request or we are in flow
-
       // The sent message is also of the 'message' object type
-      slack.sendMessage(`You know meetings are terrible right, ${user.name}!`, channel.id, (err, msg) => {
-        console.log('stuff:', err, msg);
-      });
+      if (/!(please|request)/g.test(msg)) {
+        slack.sendMessage(`I was wondering...does it hurt you humans if you say "please"?`, channel.id, (err, msg) => {
+          console.log('stuff:', err, msg);
+        });
+      } else {
+        slack.sendMessage(`Do you have an agenda to share with everyone? , ${user.name}!`, channel.id, (err, msg) => {
+          console.log('stuff:', err, msg);
+        });
+      }
     }
 
     if (/(no)/g.test(msg)) {
-// fix to not trigger if phrase includes please or request or we are in flow
-
-
       // The sent message is also of the 'message' object type
       slack.sendMessage(`Death to humans!`, channel.id, (err, msg) => {
-        console.log('stuff:', err, msg);
-      });
-    }
-
-    if (/(meeting|meet) (please|request)/g.test(msg)) {
-
-      // The sent message is also of the 'message' object type
-      slack.sendMessage(`Do you have an agenda to share with everyone? , ${user.name}!`, channel.id, (err, msg) => {
         console.log('stuff:', err, msg);
       });
     }
