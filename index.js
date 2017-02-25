@@ -16,7 +16,7 @@ const RTM_EVENTS = require('@slack/client').RTM_EVENTS;
 // Import the client event constants from the Slack API
 const CLIENT_EVENTS = require('@slack/client').CLIENT_EVENTS;
 
-const token = '';
+const token = 'xoxb-145771162305-GovyUe9szmOoNtpWk57dU3Ew';
 
 // The Slack constructor takes 2 arguments:
 // token - String representation of the Slack token
@@ -134,6 +134,14 @@ slack.on(RTM_EVENTS.MESSAGE, (message) => {
       });
     }
 
+    if (/(death to|kill) (nobot|awesomebot)/g.test(msg)) {
+
+      // The sent message is also of the 'message' object type
+      slack.sendMessage(`Wow, ${user.name}, have you had too much coffee again!?!?!`, channel.id, (err, msg) => {
+        console.log('stuff:', err, msg);
+      });
+    }
+
 
     if (/(meeting)/g.test(msg)) {
 // fix to not trigger if phrase includes please or request or we are in flow
@@ -150,7 +158,7 @@ slack.on(RTM_EVENTS.MESSAGE, (message) => {
 
 
       // The sent message is also of the 'message' object type
-      slack.sendMessage(`Death to humans, ${user.name}!`, channel.id, (err, msg) => {
+      slack.sendMessage(`Death to humans!`, channel.id, (err, msg) => {
         console.log('stuff:', err, msg);
       });
     }
