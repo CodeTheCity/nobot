@@ -103,6 +103,15 @@ slack.on(RTM_EVENTS.MESSAGE, (message) => {
   //  console.log('ret:', err, msg);
   //});
 
+  function get_greetings(){
+    var responses = [
+      'Hello to you too, ${user.name}!',
+      '${user.name}! Oooh, lucky me, I get to help you again!'
+
+      return responses[Math.floor(Math.random() * responses.length)];
+    ]
+  }
+
   if (message.text) {
     let msg = message.text.toLowerCase();
 
@@ -129,7 +138,7 @@ slack.on(RTM_EVENTS.MESSAGE, (message) => {
     if (/(hello|hi) (nobot|awesomebot)/g.test(msg)) {
 
       // The sent message is also of the 'message' object type
-      slack.sendMessage(`Hello to you too, ${user.name}!`, channel.id, (err, msg) => {
+      slack.sendMessage(get_greetings(), channel.id, (err, msg) => {
         console.log('stuff:', err, msg);
       });
     }
@@ -137,8 +146,7 @@ slack.on(RTM_EVENTS.MESSAGE, (message) => {
 
     if (/(meeting)/g.test(msg)) {
 // fix to not trigger if phrase includes please or request or we are in flow
-
-
+      if
       // The sent message is also of the 'message' object type
       slack.sendMessage(`You know meetings are terrible right, ${user.name}!`, channel.id, (err, msg) => {
         console.log('stuff:', err, msg);
@@ -162,6 +170,7 @@ slack.on(RTM_EVENTS.MESSAGE, (message) => {
         console.log('stuff:', err, msg);
       });
     }
+
     if (/(agenda) (list)/g.test(msg)) {
 
       // The sent message is also of the 'message' object type
