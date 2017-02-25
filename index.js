@@ -98,10 +98,10 @@ slack.on(RTM_EVENTS.MESSAGE, (message) => {
 
   let channel = slack.dataStore.getChannelGroupOrDMById(message.channel);
 
-  console.log(channel.id);
-  slack.sendMessage('Death to humans!', channel.id, (err, msg) => {
-    console.log('ret:', err, msg);
-  });
+  //console.log(channel.id);
+  //slack.sendMessage('Death to humans!', channel.id, (err, msg) => {
+  //  console.log('ret:', err, msg);
+  //});
 
   if (message.text) {
     let msg = message.text.toLowerCase();
@@ -130,6 +130,13 @@ slack.on(RTM_EVENTS.MESSAGE, (message) => {
 
       // The sent message is also of the 'message' object type
       slack.sendMessage(`Hello to you too, ${user.name}!`, channel.id, (err, msg) => {
+        console.log('stuff:', err, msg);
+      });
+    }
+    if (/(meeting|meet) (please|request)/g.test(msg)) {
+
+      // The sent message is also of the 'message' object type
+      slack.sendMessage(`You know meetings are terrible things right , ${user.name}!`, channel.id, (err, msg) => {
         console.log('stuff:', err, msg);
       });
     }
