@@ -187,7 +187,7 @@ slack.on(RTM_EVENTS.MESSAGE, (message) => {
 
     if (/(start|write|begin) (agenda|list)/g.test(msg)) {
       // The sent message is also of the 'message' object type
-      slack.sendMessage(`Ok, starting agenda! If you want to add anything to it, just say my name "add (what you want) 
+      slack.sendMessage(`Ok, starting agenda! If you want to add anything to it, just say my name "add (what you want)
         to (name of the one who has to complete the task)".`, channel.id, (err, msg) => {
         console.log('stuff:', err, msg);
       });
@@ -195,8 +195,7 @@ slack.on(RTM_EVENTS.MESSAGE, (message) => {
 
     if (/(nobot|bot|awesomebot) (add)/g.test(msg)) {
       try{
-        slack.sadd(data['message']);
-
+        slack.sadd(msg,'agendalist');
         slack.sendMessage(`Added`, channel.id, (err, msg) => {
           console.log('stuff:', err, msg);
         });

@@ -9,6 +9,7 @@
   "author": "Paul Asjes",
   "license": "ISC",
   "dependencies": {
-    "@slack/client": "^2.1.0"
+    "@slack/client": "^2.1.0",
+    "redis": "^2.6.5"
   }
 }
