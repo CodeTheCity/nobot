@@ -16,7 +16,7 @@ const RTM_EVENTS = require('@slack/client').RTM_EVENTS;
 // Import the client event constants from the Slack API
 const CLIENT_EVENTS = require('@slack/client').CLIENT_EVENTS;
 
-const token = 'xoxb-145771162305-GovyUe9szmOoNtpWk57dU3Ew';
+const token = '';
 
 const redis = require('redis');
 
