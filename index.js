@@ -18,6 +18,8 @@ const CLIENT_EVENTS = require('@slack/client').CLIENT_EVENTS;
 
 const token = '';
 
+const redis = require('redis');
+
 // The Slack constructor takes 2 arguments:
 // token - String representation of the Slack token
 // opts - Objects with options for our implementation
@@ -89,6 +91,10 @@ slack.on(CLIENT_EVENTS.RTM.AUTHENTICATED, (rtmStartData) => {
   console.log(`Logged in as ${rtmStartData.self.name} of team ${rtmStartData.team.name}, but not yet connected to a channel`);
 });
 
+slack.on('connect', () => {
+  console.log('Connected to Redis');
+})
+
 slack.on(RTM_EVENTS.MESSAGE, (message) => {
   let user = slack.dataStore.getUserById(message.user)
 
@@ -106,14 +112,6 @@ slack.on(RTM_EVENTS.MESSAGE, (message) => {
   function get_greetings(){
     var responses = [
       `Hello to you too, ${user.name}!`,
-      `${user.name}! Oooh, lucky me, I get to help you again!`
-    ];
-      return responses[Math.floor(Math.random() * responses.length)];
-  }
-
-  function get_meetingQuestions(){
-    var responses = [
-      `Do you have an agenda to share with everyone? , ${user.name}!`,
       `${user.name}! Oooh, lucky me, I get to help you again!`
     ];
       return responses[Math.floor(Math.random() * responses.length)];
@@ -162,7 +160,7 @@ slack.on(RTM_EVENTS.MESSAGE, (message) => {
     if (/(meeting|meet)/g.test(msg)) {
 // fix to not trigger if phrase includes please or request or we are in flow
       // The sent message is also of the 'message' object type
-      if (/!(please|request)/g.test(msg)) {
+      if (!/(please|request)/g.test(msg)) {
         slack.sendMessage(`I was wondering...does it hurt you humans if you say "please"?`, channel.id, (err, msg) => {
           console.log('stuff:', err, msg);
         });
@@ -180,15 +178,26 @@ slack.on(RTM_EVENTS.MESSAGE, (message) => {
       });
     }
 
-    if (/(agenda) (list)/g.test(msg)) {
-
+    if (/(start|write|begin) (agenda|list)/g.test(msg)) {
       // The sent message is also of the 'message' object type
-      slack.sendMessage(`These are all the agenda items that you bothered to tell me about! , ${user.name}!
-        blah
-        blha
-        blhag`, channel.id, (err, msg) => {
+      slack.sendMessage(`Ok, starting agenda! If you want to add anything to it, just say my name "add (what you want) 
+        to (name of the one who has to complete the task)".`, channel.id, (err, msg) => {
         console.log('stuff:', err, msg);
       });
+    }
+
+    if (/(nobot|bot|awesomebot) (add)/g.test(msg)) {
+      try{
+        slack.sadd(data['message']);
+
+        slack.sendMessage(`Added`, channel.id, (err, msg) => {
+          console.log('stuff:', err, msg);
+        });
+      } catch(err) {
+        slack.sendMessage(`Not added`, channel.id, (err, msg) => {
+          console.log('stuff:', err, msg);
+        });
+      }
     }
   }
 });
