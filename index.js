@@ -16,7 +16,7 @@ const RTM_EVENTS = require('@slack/client').RTM_EVENTS;
 // Import the client event constants from the Slack API
 const CLIENT_EVENTS = require('@slack/client').CLIENT_EVENTS;
 
-const token = '';
+const token = process.env.SLACK_TOKEN;
 
 const redis = require('redis');
 
@@ -167,12 +167,16 @@ slack.on(RTM_EVENTS.MESSAGE, (message) => {
       } else {
         if (/(meeting|meet) (with)/g.test(msg)) {
           slack.sendMessage(`Do you have *any idea* how busy @stevenmilne is?! `, channel.id, (err, msg) => {
-          console.log('stuff:', err, msg);
-        });
+            console.log('stuff:', err, msg);
+          });
+        } else if (/(time)/g.test(msg)){
+          slack.sendMessage(`Yaaay! God, already?!`, channel.id, (err, msg) => {
+            console.log('stuff:', err, msg);
+          });
         } else {
-        slack.sendMessage(`Do you have an agenda to share with everyone? , ${user.name}!`, channel.id, (err, msg) => {
-          console.log('stuff:', err, msg);
-        });
+          slack.sendMessage(`Do you have an agenda to share with everyone? , ${user.name}!`, channel.id, (err, msg) => {
+              console.log('stuff:', err, msg);
+            });
         }
       }
 
