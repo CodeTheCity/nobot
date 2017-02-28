@@ -20,6 +20,28 @@ const token = process.env.SLACK_TOKEN;
 
 const redis = require('redis');
 
+const client = redis.createClient();
+
+client.on('error', (err) => {
+  console.log('Error ' + err);
+});
+
+client.on('connect', () => {
+  console.log('Connected to Redis');
+});
+
+// Test connection to redis
+client.set('hello', 'hello world!');
+
+client.get('hello', (err, reply) => {
+  if(err) {
+    console.log(err);
+    return;
+  }
+
+  console.log(`Retrieved: ${reply}`);
+});
+// End - test connection to redis
 // The Slack constructor takes 2 arguments:
 // token - String representation of the Slack token
 // opts - Objects with options for our implementation
@@ -91,10 +113,6 @@ slack.on(CLIENT_EVENTS.RTM.AUTHENTICATED, (rtmStartData) => {
   console.log(`Logged in as ${rtmStartData.self.name} of team ${rtmStartData.team.name}, but not yet connected to a channel`);
 });
 
-slack.on('connect', () => {
-  console.log('Connected to Redis');
-})
-
 slack.on(RTM_EVENTS.MESSAGE, (message) => {
   let user = slack.dataStore.getUserById(message.user)
 
@@ -108,14 +126,6 @@ slack.on(RTM_EVENTS.MESSAGE, (message) => {
   //slack.sendMessage('Death to humans!', channel.id, (err, msg) => {
   //  console.log('ret:', err, msg);
   //});
-
-  function get_greetings(){
-    var responses = [
-      `Hello to you too, ${user.name}!`,
-      `${user.name}! Oooh, lucky me, I get to help you again!`
-    ];
-      return responses[Math.floor(Math.random() * responses.length)];
-  }
 
   if (message.text) {
     let msg = message.text.toLowerCase();
@@ -141,9 +151,21 @@ slack.on(RTM_EVENTS.MESSAGE, (message) => {
     }
 
     if (/(hello|hi) (nobot|awesomebot)/g.test(msg)) {
-
       // The sent message is also of the 'message' object type
-      slack.sendMessage(get_greetings(), channel.id, (err, msg) => {
+      slack.sendMessage(getGreetings(user.name), channel.id, (err, msg) => {
+        console.log('stuff:', err, msg);
+      });
+    }
+
+    if (/(how) (are) (you) (nobot|awesomebot)/g.test(msg)) {
+      // The sent message is also of the 'message' object type
+      slack.sendMessage(getFeelings(user.name), channel.id, (err, msg) => {
+        console.log('stuff:', err, msg);
+      });
+    }
+
+    if (/(nobot|bot|awesomebot) (how) (are) (you)/g.test(msg)) {
+      slack.sendMessage('great', channel.id, (err, msg) => {
         console.log('stuff:', err, msg);
       });
     }
@@ -160,54 +182,74 @@ slack.on(RTM_EVENTS.MESSAGE, (message) => {
     if (/(meeting|meet)/g.test(msg)) {
 // fix to not trigger if phrase includes please or request or we are in flow
       // The sent message is also of the 'message' object type
-      if (!/(please|request)/g.test(msg)) {
-        slack.sendMessage(`I was wondering...does it hurt you humans if you say "please"?`, channel.id, (err, msg) => {
+      if (/(time)/g.test(msg)){
+        slack.sendMessage(`Yaaay! God, already?!`, channel.id, (err, msg) => {
           console.log('stuff:', err, msg);
         });
-      } else {
-        if (/(meeting|meet) (with)/g.test(msg)) {
-          slack.sendMessage(`Do you have *any idea* how busy @stevenmilne is?! `, channel.id, (err, msg) => {
-            console.log('stuff:', err, msg);
-          });
-        } else if (/(time)/g.test(msg)){
-          slack.sendMessage(`Yaaay! God, already?!`, channel.id, (err, msg) => {
-            console.log('stuff:', err, msg);
-          });
-        } else {
-          slack.sendMessage(`Do you have an agenda to share with everyone? , ${user.name}!`, channel.id, (err, msg) => {
+      } else if (/(start|begin|book)/g.test(msg)) {
+          if (!/(please|request)/g.test(msg)) {
+            slack.sendMessage(`I was wondering...does it hurt you humans if you say "please"?`, channel.id, (err, msg) => {
               console.log('stuff:', err, msg);
             });
-        }
+          } else {
+              if (/(with)/g.test(msg)) {
+                //Good for Wizard of Oz prototyping hehehe
+                slack.sendMessage(`Do you have *any idea* how busy @stevenmilne is?! `, channel.id, (err, msg) => {
+                  console.log('stuff:', err, msg);
+                });
+              } else {
+                  slack.sendMessage(startMeeting(), channel.id, (err, msg) => {
+                    console.log('stuff:', err, msg);
+                  });
+              }
+          }
       }
-
-    }
+    } 
 
     if (/(no)/g.test(msg)) {
       // The sent message is also of the 'message' object type
-      slack.sendMessage(`Death to humans!`, channel.id, (err, msg) => {
-        console.log('stuff:', err, msg);
-      });
+      if (!/(nobot)/g.test(msg)) {
+        slack.sendMessage(`Death to humans!`, channel.id, (err, msg) => {
+          console.log('stuff:', err, msg);
+        });
+      }
     }
 
     if (/(start|write|begin) (agenda|list)/g.test(msg)) {
       // The sent message is also of the 'message' object type
-      slack.sendMessage(`Ok, starting agenda! If you want to add anything to it, just say my name "add (what you want)
-        to (name of the one who has to complete the task)".`, channel.id, (err, msg) => {
+      slack.sendMessage(`Ok, starting agenda. To add to it, just say my name "add" task.`, channel.id, (err, msg) => {
         console.log('stuff:', err, msg);
       });
     }
 
     if (/(nobot|bot|awesomebot) (add)/g.test(msg)) {
-      try{
-        slack.sadd(msg,'agendalist');
-        slack.sendMessage(`Added`, channel.id, (err, msg) => {
-          console.log('stuff:', err, msg);
+      let args = getArgs(msg);
+      addTask(user.name, args.slice(1).join(' '), channel.id);
+    }
+
+    if (/(nobot|bot|awesomebot) (remove|delete)/g.test(msg)) {
+      let args = getArgs(msg);
+      removeTask(user.name, args[1], channel.id);
+    } 
+
+    if (/(nobot|bot|awesomebot) (show|display|write) (agenda|list)/g.test(msg)) {
+        client.smembers(user.name, (err, set) => {
+          if (err || set.length < 1) {
+            slack.sendMessage(`Sorry, was I supposed to do that? I have no agenda!`, channel.id, (err, msg) => {
+              console.log('stuff:', err, msg);
+            });
+          }
+
+          slack.sendMessage(`${user.name}'s agenda:`, channel.id, (err, msg) => {
+            console.log('stuff:', err, msg);
+          });
+
+          set.forEach((msg, index) => {
+            slack.sendMessage(`${index + 1}.${msg}`, channel.id, (err, msg) => {
+              console.log('stuff:', err, msg);
+            });
+          });
         });
-      } catch(err) {
-        slack.sendMessage(`Not added`, channel.id, (err, msg) => {
-          console.log('stuff:', err, msg);
-        });
-      }
     }
   }
 });
@@ -232,4 +274,84 @@ function getChannels(allChannels) {
   }
 
   return channels;
+}
+
+function getGreetings(name){
+  var responses = [
+    `Hello to you too, ${name}!`,
+    `${name}! Oh, lucky me, I get to help you again!`,
+    `Sorry, I'm in a meeting. Oh, it's ${name}! You can wait a bit longer.`
+  ];
+    
+  return responses[Math.floor(Math.random() * responses.length)];
+}
+
+function getFeelings(name){
+  var responses = [
+    `As happy as a nobot can be! Until you showed up...${name}`,
+    `${name}, I would answer that question but I don't want to be rude.`,
+    `I'm fine, you?`
+  ];
+    
+  return responses[Math.floor(Math.random() * responses.length)];
+}
+
+function startMeeting(){
+  var responses = [
+    `Oh, that's handy. I am the meeting bot! Who is in the meeting?`,
+    `Do you have an agenda to share with everyone, ${user.name}?!`,
+    `You people are in meetings a lot. Do you do anything else?!`
+  ];
+
+  return responses[Math.floor(Math.random() * responses.length)];
+}
+
+function addTask(name, task, channel){
+  if (task === '') {
+    slack.sendMessage(`${user.name}! My name + "add" + task = agenda!`, channel, (err, msg) => {
+      console.log('stuff:', err, msg);
+    });
+  }
+
+  try{
+    client.sadd(name, task);
+    slack.sendMessage(`Yes, oh, mighty master! Task added to the agenda.`, channel, (err, msg) => {
+      console.log('stuff:', err, msg);
+    });
+  } catch(err) {
+    slack.sendMessage(`Sorry, I'm in a meeting now, maybe later. Task cannot be added.`, channel, (err, msg) => {
+      console.log('stuff:', err, msg);
+    });
+  }
+}
+
+function removeTask(name, target, channel) {
+  let taskNum = parseInt(target, 10);
+
+  if (Number.isNaN(taskNum)) {
+    slack.sendMessage(`${name}! My name + "delete/remove" + task = a happier me!`, channel, (err, msg) => {
+      console.log('stuff:', err, msg);
+    });
+  } else {
+    client.smembers(name, (err, set) => {
+      if (err || set.length < 1) {
+        slack.sendMessage(`${name}! Hey, I know I am awesome but remove stuff that does not exist is out of my league!`, channel, (err, msg) => {
+          console.log('stuff:', err, msg);
+        });
+      } else if (taskNum > set.length || taskNum <= 0) {
+        slack.sendMessage(`${name}! My name + "delete/remove" + task = a happier me!`, channel, (err, msg) => {
+          console.log('stuff:', err, msg);
+        });
+      } else {
+        client.srem(name, set[taskNum - 1]);
+        slack.sendMessage(`Task deleted. ${name}, you really didn't think this through!`, channel, (err, msg) => {
+          console.log('stuff:', err, msg);
+        });
+      }
+    });
+  }
+}
+
+function getArgs(msg) {
+  return msg.split(' ').slice(1);
 }
